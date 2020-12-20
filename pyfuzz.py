@@ -7,7 +7,7 @@
 #     - I built it just for fun and for my project. If you want to contribute
 #     - and improve the code then feel free to do that, i will be optimizing it 
 #     - every now and then.
-# Usage: python pyfuzz.py -u https://facebook.com/ -w wordlist.txt --type dir/domain
+# Usage: python pyfuzz.py -u https://domain.com/ -w wordlist.txt --type dir/domain
 # ====================================================================================================================================
 
 from termcolor import cprint
@@ -51,7 +51,19 @@ def make_request(url):
         pass
 
 if __name__ == "__main__":
-    parser = optparse.OptionParser("[*] python pyfuzz.py -u https://facebook.com/ -w wordlist --type dir \n(Make sure to add the trailing '/' at the end of url")
+    cprint("""     ███████████             ███████████                                 
+░░███░░░░░███           ░░███░░░░░░█                                 
+ ░███    ░███ █████ ████ ░███   █ ░  █████ ████  █████████  █████████
+ ░██████████ ░░███ ░███  ░███████   ░░███ ░███  ░█░░░░███  ░█░░░░███ 
+ ░███░░░░░░   ░███ ░███  ░███░░░█    ░███ ░███  ░   ███░   ░   ███░  
+ ░███         ░███ ░███  ░███  ░     ░███ ░███    ███░   █   ███░   █
+ █████        ░░███████  █████       ░░████████  █████████  █████████
+░░░░░          ░░░░░███ ░░░░░         ░░░░░░░░  ░░░░░░░░░  ░░░░░░░░░ 
+               ███ ░███                                              
+              ░░██████                                               
+               ░░░░░░""", color="cyan")
+    cprint("It's not a hacking tool without ascii art ;)", color="cyan")
+    parser = optparse.OptionParser("""[USAGE]: python pyfuzz.py -u https://facebook.com/ -w wordlist --type dir \n(Make sure to add the trailing '/' at the end of url""")
     parser.add_option("-w", type="string", dest="wordlist", help="provide wordlist")
     parser.add_option("-u", type="string", dest="url", help="provide url")
     parser.add_option("-x", type="string", dest="ext", help="provide extension")
