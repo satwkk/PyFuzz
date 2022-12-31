@@ -7,6 +7,8 @@ Note: Pyfuzz is in early dev stage
 URL Endpoint fuzzing
 ```
 python pyfuzz.py https://example.com/FUZZ wordlist.txt
+
+python pyfuzz.py https://example.com/FUZZ.php wordlist.txt
 ```
 
 
