@@ -9,6 +9,3 @@ class Arg:
     def __str__(self):
         return f'{self.url} : {self.headers} : {self.wordlist} : {self.index}'
     
-    def set_fuzz_index(self, index: int):
-        self.index = index
-        

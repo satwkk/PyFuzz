@@ -11,5 +11,9 @@ python pyfuzz.py https://example.com/FUZZ wordlist.txt
 python pyfuzz.py https://example.com/FUZZ.php wordlist.txt
 ```
 
+Subdomain fuzzing
+```
+python pyfuzz.py https://example.com/ wordlist.txt "Host: FUZZ.example.com"
+```
 
-
+TODO: Implement optparse for arguments

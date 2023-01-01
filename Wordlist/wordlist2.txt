@@ -10,6 +10,7 @@ full
 12
 contact
 about
+www
 search
 spacer
 privacy
