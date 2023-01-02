@@ -1,23 +1,23 @@
-from args import Arg
+from optparse import Values, OptionParser
+from typing import List
     
 '''
 Parses the arguments for FUZZ keyword
-# TODO: We are iterating over all arguments, not neccessary.
 '''
-def parse_args(args: Arg) -> dict[Arg, int]:
-    for arg_name in reversed(dir(args)):
-        if not arg_name.startswith('__') and not arg_name == 'index':
-            arg_value = getattr(args, arg_name)
-            for i in range(0, len(arg_value)):
-                if arg_value[i:i+4] == "FUZZ":
-                    args.index = i
-                    return (arg_name, args)
-                    
+def parse_args(parser: OptionParser, options: Values) -> dict[str, tuple[str, int]]:
+    available_args = [x.dest for x in parser._get_all_options()[1:]]
+    result = {}
+
+    for arg_name in reversed(dir(options)):
+        if arg_name in available_args:
+            arg_value = getattr(options, arg_name)
+            if arg_value:
+                for i in range(0, len(arg_value)):
+                    if arg_value[i:i+4] == "FUZZ":
+                        result[arg_name] = (arg_value, i)
+                        return result
 
 def craft_headers(header_args: str):
-    if len(header_args) == 0 or ',' not in header_args or ':' not in header_args:
-        return ""
-
     key_val_pairs = {}
     headers = header_args.split(',')
     for header in headers:

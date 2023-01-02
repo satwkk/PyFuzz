@@ -1,12 +1,15 @@
-from args import Arg
 from enum import Enum
-from typing import List
 from banner import banner
+from optparse import OptionParser
 
-import sys
 import parse
 import requests
 import threading
+
+# Add any default headers here if you want to add them to your requests
+default_headers = """
+    User-Agent: Leet hacker zone
+"""
 
 class EArgType(Enum):
     NONE = 0
@@ -20,49 +23,53 @@ class ERequestType(Enum):
 
 class Fuzzer:
     def __init__(self, **kwargs) -> None:
-        self.parsed_arg = kwargs.get('args')
-        self.arg_name, self.arg = self.parsed_arg
+        self.fuzz_arg = kwargs.get('args')
+        self.url = kwargs.get('url')
+        self.headers = parse.craft_headers(kwargs.get('headers'))
         self.wordlist = open(kwargs.get('wordlist'), 'r')
         self.timeout = kwargs.get('timeout')
         self.filter_by = kwargs.get('filter_by')
         self.session = requests.Session()
         self.mode = EArgType.NONE
         self.request_mode = ERequestType.GET
-        
+
     def detect_modes(self) -> None:
-        if self.arg_name == 'url':
+        if 'url' in self.fuzz_arg:
             self.mode = EArgType.URL
-        elif self.arg_name == 'headers':
+        elif 'headers' in self.fuzz_arg:
             self.mode = EArgType.HEADER
             
-    def prepare_statement(self, word_to_replace: str) -> str:
+    def prepare_args(self, word_to_replace: str) -> str:
         if self.mode == EArgType.URL:
-            final_statement = f'{self.arg.url[:self.arg.index]}{word_to_replace}{self.arg.url[self.arg.index+4:]}'
-        elif self.mode == EArgType.HEADER:
-            final_statement = f'{self.arg.headers[:self.arg.index]}{word_to_replace}{self.arg.headers[self.arg.index+4:]}'
-        return final_statement
-
-    def make_request(self, final_fuzz_str: str, out_responses: dict[str, requests.Response]):
-        if self.mode == EArgType.URL:
-            response = self.session.get(url=final_fuzz_str, headers=parse.craft_headers(self.arg.headers))
-            out_responses[final_fuzz_str] = response
+            url, fuzz_idx = self.fuzz_arg['url']
+            final_arg = f'{url[:fuzz_idx]}{word_to_replace}{url[fuzz_idx+4:]}'
 
         elif self.mode == EArgType.HEADER:
-            response = self.session.get(url=self.arg.url, headers=parse.craft_headers(final_fuzz_str))
-            out_responses[final_fuzz_str] = response
+            header, fuzz_idx = self.fuzz_arg['headers']
+            final_arg = f'{header[:fuzz_idx]}{word_to_replace}{header[fuzz_idx+4:]}'
+
+        return final_arg
+
+    def make_request(self, fuzz_arg: str, out_responses: dict[str, requests.Response]):
+        if self.mode == EArgType.URL:
+            response = self.session.get(url=fuzz_arg, headers=self.headers, timeout=self.timeout)
+            out_responses[fuzz_arg] = response
+
+        elif self.mode == EArgType.HEADER:
+            response = self.session.get(url=self.url, headers=parse.craft_headers(fuzz_arg), timeout=self.timeout)
+            out_responses[fuzz_arg] = response
 
         #! DEBUG
-        if response.status_code == 200:
-            print(f'[{response.status_code}] => {final_fuzz_str}')
+        print(f'[{response.status_code}] => {fuzz_arg}')
             
     def start(self) -> None:
         self.detect_modes()
         words = self.wordlist.read().strip().split('\n')
         response = {}
         for word in words:
-            statement = self.prepare_statement(word)
-            thread = threading.Thread(target=self.make_request, args=(statement, response))
-            # thread.daemon = True
+            fuzz_arg = self.prepare_args(word)
+            thread = threading.Thread(target=self.make_request, args=(fuzz_arg, response))
+            thread.daemon = True
             thread.start()
             
     def cleanup(self) -> None:
@@ -71,13 +78,24 @@ class Fuzzer:
         
 if __name__ == '__main__':
     print(banner)
-    url = sys.argv[1]
-    wordlist = sys.argv[2]
-    headers = sys.argv[3]
 
-    args = Arg(url=url, headers=headers, wordlist=wordlist)
-    arg_name, parsed_args = parse.parse_args(args)
+    parser = OptionParser()
+    parser.add_option("-u", "--url", dest="url", help="Url to fuzz")
+    parser.add_option("-w", "--wordlist", dest="wordlist", help="Wordlist for bruteforcing")
+    parser.add_option("-H", "--headers", dest="headers", help="Headers to provide for http/https request", )
+    parser.add_option("-t", "--timeout", dest="timeout", help="Timeout for http/https request to complete")
 
-    fuzzer = Fuzzer(args=(arg_name, parsed_args), wordlist=args.wordlist, timeout=0, filter_by="")
+    option, args = parser.parse_args()
+
+    parsed_args = parse.parse_args(parser, option)
+    fuzzer = Fuzzer(
+        args=parsed_args, 
+        url=option.url, 
+        headers=option.headers if option.headers else default_headers, 
+        wordlist=option.wordlist, 
+        timeout=int(option.timeout) if option.timeout else None, 
+        filter_by=""
+        )
+
     fuzzer.start()
     fuzzer.cleanup()
