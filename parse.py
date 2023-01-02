@@ -7,7 +7,6 @@ Parses the arguments for FUZZ keyword
 def parse_args(parser: OptionParser, options: Values) -> dict[str, tuple[str, int]]:
     available_args = [x.dest for x in parser._get_all_options()[1:]]
     result = {}
-
     for arg_name in reversed(dir(options)):
         if arg_name in available_args:
             arg_value = getattr(options, arg_name)
