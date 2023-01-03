@@ -1,7 +1,7 @@
 from banner import banner
 from optparse import OptionParser
 from config import DEFAULT_HEADERS
-from fuzzer import get_fuzzer_factory
+from fuzzer import get_fuzzer
 
 import parse
 
@@ -18,7 +18,7 @@ if __name__ == '__main__':
 
     parsed_args = parse.parse_args(parser, option)
     
-    fuzzer = get_fuzzer_factory(
+    fuzzer = get_fuzzer(
         parsed_args=parsed_args, 
         args=parsed_args, 
         url=option.url, 
